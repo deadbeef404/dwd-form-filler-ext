@@ -29,9 +29,29 @@ function fits(current, storage) {
     }
 }
 
-function getSetsForCurrentUrl(url) {
+async function getSetsForCurrentUrl(url) {
     var sets = [];
 
+    if (window.STORE_TO_PROFILE) {
+      var result = await chrome.storage.sync.get(null);
+      for (var i = 0; i < Object.keys(result).length; i++) {
+          var storageKey = Object.keys(result)[i];
+          var key = result[storageKey].key;
+          if (key == 'filter') {
+              continue;
+          }
+
+          var settings = JSON.parse(result[storageKey]);
+
+          if (fits(url, settings.url)) {
+              settings.key = key;
+              sets.push(settings);
+          }
+      }
+      return sets;
+    }
+
+    // The old `localStorage` way!
     for (var i = 0; i < localStorage.length; i++) {
         var key = localStorage.key(i);
         if (key == 'filter') {
