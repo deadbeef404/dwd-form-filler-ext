@@ -10,7 +10,7 @@ function fits(current, storage) {
 
     var url1 = parseUri(current);
     var url2 = parseUri(storage);
-	
+
     if (storage === '*') {
         return true;
 
@@ -29,26 +29,37 @@ function fits(current, storage) {
     }
 }
 
-async function getSetsForCurrentUrl(url) {
+async function getSetsForCurrentUrl(providedUrl) {
+    let tabUrl;
+
+    if (providedUrl) {
+        tabUrl = providedUrl;
+    } else {
+        const tab = await chrome.tabs.query({
+            'active': true,
+            'currentWindow': true,
+        });
+        tabUrl = tab[0].url;
+    }
+
     var sets = [];
 
     if (window.STORE_TO_PROFILE) {
-      var result = await chrome.storage.sync.get(null);
-      for (var i = 0; i < Object.keys(result).length; i++) {
-          var storageKey = Object.keys(result)[i];
-          var key = result[storageKey].key;
-          if (key == 'filter') {
-              continue;
-          }
+        var result = await chrome.storage.sync.get(null);
+        for (var i = 0; i < Object.keys(result).length; i++) {
+             var storageKey = Object.keys(result)[i];
+             var key = result[storageKey].key;
+             if (key == 'filter') {
+                 continue;
+             }
 
-          var settings = JSON.parse(result[storageKey]);
+             var settings = JSON.parse(result[storageKey]);
 
-          if (fits(url, settings.url)) {
-              settings.key = key;
-              sets.push(settings);
-          }
-      }
-      return sets;
+             if (fits(tabUrl, settings.url)) {
+                 sets.push(settings);
+             }
+        }
+        return sets;
     }
 
     // The old `localStorage` way!
@@ -60,8 +71,7 @@ async function getSetsForCurrentUrl(url) {
 
         var settings = JSON.parse(localStorage.getItem(key));
 
-        if (fits(url, settings.url)) {
-            settings.key = key;
+        if (fits(tabUrl, settings.url)) {
             sets.push(settings);
         }
     }

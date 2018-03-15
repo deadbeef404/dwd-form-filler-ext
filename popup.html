@@ -31,7 +31,10 @@
         #txtFormJson { height: 90px; width: 500px; }
     </style>
     <style>
-      label.fancyToggle {
+      .current-storage-container {
+        font-size: 13px;
+      }
+      .storage-toggle {
         display: block;
         padding: 5px 10px;
         margin: 5px 0;
@@ -39,18 +42,11 @@
         background-color: #ccc;
         border-radius: 7px;
       }
-      label.fancyToggle:hover {
-        background-color: gold;
+      .storage-toggle {
         cursor: pointer;
       }
-
-      .fancyToggle input[type="checkbox"] {
-        position: relative;
-        top: 1px;
-      }
-
-      .fancyToggle .isSelected {
-        background-color: lightgreen;
+      .using-chrome-storage {
+        background-color: gold;
       }
     </style>
 
@@ -69,22 +65,26 @@
             <button class="btn dropdown-toggle" data-toggle="dropdown" tabindex="-1">
                 <i class="icon-cog"></i> <span class="caret"></span>
             </button>
-            <button type="button" id="import" title="Import JSON of a saved form" class="btn"><i class="icon-plus"></i></button>
-            <label class="fancyToggle">
-              <input id="store-to-profile" type="checkbox" />
-              <span>Saving to Chrome profile</span>
+            <div class="current-storage-container">
+              Using: <span id="current-storage">Chrome Profile</span>
+            </div>
+            <label class="storage-toggle using-chrome-storage">
+              <div style="display:none">
+                <input id="store-to-profile" type="checkbox" />
+              </div>
+              <span>Switch to local sets</span>
             </label>
             <ul class="dropdown-menu">
-                <li><a href="#" id="viewSets">View all saved sets</a></li>
-                <li class="divider"></li>
-                <li><a href="#" class="filter" id="domain">Filter by domain</a></li>
-                <li><a href="#" class="filter" id="path">Filter by path</a></li>
-                <li><a href="#" class="filter" id="full">Filter by full URL</a></li>
-                <li class="divider"></li>
-                <li><a href="https://chrome.google.com/webstore/support/gbagmkohmhcjgbepncmehejaljoclpil?hl=ru&gl=ID#bug" target="_blank">Report a problem</a></li>
-                <li><a href="http://github.com/abzubarev/web-developer-form-filler-ext" target="_blank">Sources on GitHub</a></li>
-				<li><a href="#" class="donatelink">Donate</a></li>
-			</ul>
+              <li><a href="#" id="viewSets">View all saved sets</a></li>
+              <li class="divider"></li>
+              <li><a href="#" class="filter" id="domain">Filter by domain</a></li>
+              <li><a href="#" class="filter" id="path">Filter by path</a></li>
+              <li><a href="#" class="filter" id="full">Filter by full URL</a></li>
+              <li class="divider"></li>
+              <!-- <li><a href="https://chrome.google.com/webstore/support/gbagmkohmhcjgbepncmehejaljoclpil?hl=ru&gl=ID#bug" target="_blank">Report a problem</a></li> -->
+              <li><a href="http://github.com/deadbeef404/dwd-form-filler-ext" target="_blank">Sources on GitHub</a></li>
+      				<li><a href="#" class="donatelink">Donate</a></li>
+      			</ul>
         </div>
 
         <div class="text-center" id="nosets" style="display: none;">
@@ -107,7 +107,7 @@
         </table>
 
         <div class="text-center donatelink" style="color:#c91d1d;">
-            <span>Support development <a style="cursor: pointer">on Beerpay.io!</a></span><br />
+            <span>Support development <a style="cursor: pointer">on Beerpay.io</a></span><br />
 
         </div>
 

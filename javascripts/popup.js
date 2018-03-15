@@ -1,5 +1,3 @@
-var tab_url;
-
 function getAllSets() {
     var sets = [];
 
@@ -29,9 +27,9 @@ function sortBy(property) {
     }
 }
 
-function refreshSetsList(url) {
-    var table = $('#sets');
-    var sets;
+async function refreshSetsList() {
+    const table = $('#sets');
+    let sets;
 
     table.find('tbody tr').remove();
 
@@ -39,7 +37,7 @@ function refreshSetsList(url) {
         sets = getAllSets();
         sets.sort(sortBy('url'));
     } else {
-        sets = getSetsForCurrentUrl(url);
+        sets = await getSetsForCurrentUrl();
         sets.sort(sortBy('name'));
     }
 
@@ -98,7 +96,6 @@ function renderAdditionalInfo(sets) {
         var row = table.find('tr[data-key=' + set.key + ']');
         var substrHref = set.url.length > 40 ? set.url.substring(0, 40) + '...' : set.url;
         row.append('<td class="url"><a target="_blank" href="' + set.url + '">' + substrHref + '</a></td>');
-        row.find('td.restore').addClass('disabled').find('i').remove();
     }
 }
 
@@ -115,10 +112,11 @@ function getValue(tr, property) {
     return setSettings[property];
 }
 
-function sendMessage(obj, callback) {
-    chrome.tabs.query({ 'active': true, 'currentWindow': true }, function (tab) {
-        chrome.tabs.sendMessage(tab[0].id, obj, callback);
-    });
+async function sendMessage(message) {
+    const tabs = await chrome.tabs.query({ 'active': true, 'currentWindow': true });
+    const response = await chrome.tabs.sendMessage(tabs[0].id, message);
+    response.url = tabs[0].url;
+    return response
 }
 
 function setCurrentFilter() {
@@ -141,23 +139,95 @@ function getRandomStorageId() {
     return key;
 }
 
-chrome.tabs.query({ 'active': true, 'currentWindow': true }, function (tab) {
-    tab_url = tab[0].url;
-    refreshSetsList(tab_url);
-});
-
-
 function initialiseCheckbox() {
-  window.STORE_TO_PROFILE = true;
+    window.STORE_TO_PROFILE = true;
 
-  $(document).ready(function() {
-    $('#store-to-profile').change(function(e) {
-      window.STORE_TO_PROFILE = e.target.checked;
-    }).prop("checked", true);
-  });
+    $('.storage-toggle').change(function(e) {
+        window.STORE_TO_PROFILE = e.target.checked;
+        const $labelElement = $(this).closest('label');
+        const $buttonTextElement = $(this).find('span');
+        const $currentStateElement = $('#current-storage');
+        if (window.STORE_TO_PROFILE) {
+            $currentStateElement.text("Chrome Profile");
+            $buttonTextElement.text('Switch to local sets')
+            $labelElement.addClass('using-chrome-storage');
+        } else {
+            $currentStateElement.text("Local Sets");
+            $buttonTextElement.text('Switch to chrome profile sets')
+            $labelElement.removeClass('using-chrome-storage');
+        }
+        refreshSetsList();
+    });
 }
 
+// Saves the form data to the storage backend.
+async function saveFormHandler() {
+    const response = await sendMessage({ "action": 'store' });
+
+    var error = $('#error');
+    if (!response || chrome.runtime.lastError || response.error) {
+
+        if (chrome.runtime.lastError) {
+            error.html('<h6>Error :( Something wrong with current tab. Try to reload it.</h6>');
+        } else if (!response) {
+            error.html('<h6>Error :( Null response from content script</h6>');
+        } else if (response.error) {
+            error.html('<h6>Error :\'( ' + response.message + '</h6>');
+        }
+
+        error.show();
+        return;
+    }
+
+    error.hide();
+
+    var key = getRandomStorageId();
+
+    var setInfo = {
+        url: response.url,
+        name: key,
+        autoSubmit: false,
+        submitQuery: '',
+        content: response.content,
+        hotkey: '',
+    };
+
+    await storeOneSet(key, setInfo)
+    refreshSetsList();
+}
+
+async function storeOneSet(key, setInfo) {
+    // This `key` attribute is required for deletion at any point.
+    setInfo.key = key;
+
+    const dataString = JSON.stringify(setInfo);
+
+    if (window.STORE_TO_PROFILE) {
+        await chrome.storage.sync.set({[key]: dataString});
+    } else {
+        localStorage.setItem(key, dataString);
+    }
+
+}
+
+/**
+ * Remove data sets from storage.
+ *
+ * @param {array} keys - List of keys that identify sets to be removed.
+ */
+async function removeSetOfKeys(keys) {
+    if (window.STORE_TO_PROFILE) {
+        await chrome.storage.sync.remove(keys.map(key => key.toString()));
+    } else {
+        for (let i = 0; i < sets.length; i++) {
+            localStorage.removeItem(sets[i].key);
+        }
+    }
+}
+
+
 $(document).ready(function () {
+    refreshSetsList();
     initialiseCheckbox();
 
     setCurrentFilter();
@@ -183,30 +253,29 @@ $(document).ready(function () {
 		importBlock.find('#txtImportFormJson').focus();
     });
 
-    $("#btnImportSave").click(function () {
-		var json = $('#txtImportFormJson').val();
+    $("#btnImportSave").click(async function () {
+  		var json = $('#txtImportFormJson').val();
 
-		try {
-			var importedForm = JSON.parse(json);
+  		try {
+  			var importedForm = JSON.parse(json);
 
-			if (!importedForm.url || !importedForm.content || !importedForm.name) {
-				throw new Error("Invalid JSON format");
-			}
+  			if (!importedForm.url || !importedForm.content || !importedForm.name) {
+  				throw new Error("Invalid JSON format");
+  			}
 
-			if (importedForm.url === '*'){
-				importedForm.name += '-global';
-			}
+  			if (importedForm.url === '*'){
+  				importedForm.name += '-global';
+  			}
 
-			var key = getRandomStorageId();
-			localStorage.setItem(key, JSON.stringify(importedForm));
+  			var key = getRandomStorageId();
+            await storeOneSet(key, importedForm)
+  		}
+  		catch (err) {
+  			alert('Got an error: ' + err.message);
+  		}
 
-		}
-		catch (err) {
-			alert('Got an error: ' + err.message);
-		}
-
-		refreshSetsList(tab_url);
-		$('#importBlock').hide();
+  		refreshSetsList();
+  		$('#importBlock').hide();
     });
 
     $("#clearall").click(function () {
@@ -214,49 +283,13 @@ $(document).ready(function () {
             return;
         }
 
-        var sets = getSetsForCurrentUrl(tab_url);
-
-        for (var i = 0; i < sets.length; i++) {
-            localStorage.removeItem(sets[i].key);
-        }
-
-        refreshSetsList(tab_url);
-    });
-
-    $("#store").click(function () {
-        sendMessage({ "action": 'store' }, function readResponse(obj) {
-            var error = $('#error');
-            if (!obj || chrome.runtime.lastError || obj.error) {
-
-                if (chrome.runtime.lastError) {
-                    error.html('<h6>Error :( Something wrong with current tab. Try to reload it.</h6>');
-                } else if (!obj) {
-                    error.html('<h6>Error :( Null response from content script</h6>');
-                } else if (obj.error) {
-                    error.html('<h6>Error :\'( ' + obj.message + '</h6>');
-                }
-
-                error.show();
-                return;
-            } else {
-                error.hide();
-            }
-
-            var key = getRandomStorageId();
-
-            var setSettings = {
-				url: tab_url,
-                autoSubmit: false,
-                submitQuery: '',
-                content: obj.content,
-                name: key,
-                hotkey: ''
-            };
-
-            localStorage.setItem(key, JSON.stringify(setSettings));
-            refreshSetsList(tab_url);
+        getSetsForCurrentUrl().then(async sets => {
+            await removeSetOfKeys(sets.map(set => set.key));
+            refreshSetsList();
         });
     });
+
+    $("#store").click(saveFormHandler);
 
     var sets = $('#sets');
 
@@ -268,9 +301,8 @@ $(document).ready(function () {
         var key = $(this).parents('tr').data('key');
         var setSettings = JSON.parse(localStorage.getItem(key));
 
-        sendMessage({ action: 'fill', setSettings: setSettings }, function(response) {
-             window.close();
-        });
+        const message = { action: 'fill', setSettings: setSettings };
+        sendMessage(message).then(window.close);
     });
 
     sets.on("click", 'td.submit', function (event) {
@@ -298,17 +330,17 @@ $(document).ready(function () {
             }
 
         } finally {
-            refreshSetsList(tab_url);
+            refreshSetsList();
         }
 
     });
 
-    sets.on("click", 'td.remove', function (event) {
+    sets.on("click", 'td.remove', async function (event) {
         var tr = $(this).parents('tr');
         var key = tr.data('key');
 
-        localStorage.removeItem(key);
-		refreshSetsList(tab_url);
+        await removeSetOfKeys([key]);
+    	refreshSetsList();
     });
 
     sets.on("click", 'td.export', function (event) {
@@ -392,8 +424,9 @@ $(document).ready(function () {
         var tr = $('#sets td.hotkey.active').parents('tr');
         var hotkey = $('#hotkeyBlock #txtHotkey').val();
         saveValue(tr, 'hotkey', hotkey);
-        refreshSetsList(tab_url);
-        sendMessage({ "action": 'rebind' }, function(response) { });
+
+        refreshSetsList().then(
+          () => sendMessage({ "action": 'rebind' }));
     });
 
     $('#btnHotkeyCancel').click(function () {
@@ -416,7 +449,7 @@ $(document).ready(function () {
         localStorage.setItem('filter', value);
         link.prepend('<i class="icon-ok"></i> ');
 
-        refreshSetsList(tab_url);
+        refreshSetsList();
     });
 
     sets
