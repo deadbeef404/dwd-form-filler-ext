@@ -3,7 +3,8 @@ dwd-form-filler-ext
 
 Useful for developers to fill forms.
 
-It will soon be available in the Google Web Store.
+Now available in the Chrome Web Store!
+https://chrome.google.com/webstore/detail/dwd-form-filler/mahiefbimdnjigbknfjknhgfdhnfehoh
 
 ## Support on Beerpay
 Hey dude! Help me out for a couple of :beers:!
