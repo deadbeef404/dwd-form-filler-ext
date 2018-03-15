@@ -99,16 +99,17 @@ function renderAdditionalInfo(sets) {
     }
 }
 
-function saveValue(tr, property, value) {
+async function saveValue(tr, property, value) {
     var key = tr.data('key');
-    var setSettings = JSON.parse(localStorage.getItem(key));
+    const setSettings = await getSet(key);
     setSettings[property] = value;
-    localStorage.setItem(key, JSON.stringify(setSettings));
+
+    await storeOneSet(key, setSettings)
 }
 
-function getValue(tr, property) {
+async function getValue(tr, property) {
     var key = tr.data('key');
-    var setSettings = JSON.parse(localStorage.getItem(key));
+    const setSettings = await getSet(key);
     return setSettings[property];
 }
 
@@ -304,25 +305,25 @@ $(document).ready(function () {
         sendMessage(message).then(window.close);
     });
 
-    sets.on("click", 'td.submit', function (event) {
+    sets.on("click", 'td.submit', async function (event) {
         var td = $(this);
         var tr = td.parents('tr');
 
         try {
 
             if (td.hasClass('active')) {
-                saveValue(tr, 'autoSubmit', false);
+                await saveValue(tr, 'autoSubmit', false);
                 td.removeClass('active');
                 return;
             }
 
-            var oldQuery = getValue(tr, 'submitQuery');
+            var oldQuery = await getValue(tr, 'submitQuery');
             oldQuery = oldQuery ? oldQuery : 'input[type=submit]';
 
             var query = prompt('Enter jquery selector for submit button to auto click', oldQuery);
             if (query) {
-                saveValue(tr, 'submitQuery', query);
-                saveValue(tr, 'autoSubmit', true);
+                await saveValue(tr, 'submitQuery', query);
+                await saveValue(tr, 'autoSubmit', true);
                 td.addClass('active');
             } else {
                 td.removeClass('active');
@@ -371,11 +372,11 @@ $(document).ready(function () {
 
         var td = $(this);
         var tr = td.parents('tr');
-        var value = getValue(tr, 'hotkey');
-
-        td.addClass('active');
-        hotkeyBlock.show();
-        hotkeyBlock.find('#txtHotkey').val(value).focus().select();
+        getValue(tr, 'hotkey').then((value) => {
+            td.addClass('active');
+            hotkeyBlock.show();
+            hotkeyBlock.find('#txtHotkey').val(value).focus().select();
+        });
     });
 
     sets.on("click", 'td.setName', function (event) {
@@ -386,12 +387,12 @@ $(document).ready(function () {
 
         var tr = td.parents('tr');
         var input = $('<input type="text" class="span1 txtSetName" />');
-        input.val(getValue(tr, 'name'));
+        input.val($(this).text());
 
         td.empty().append(input).find('input').focus().select();
     });
 
-    sets.on("keyup", 'input.txtSetName', function (e) {
+    sets.on("keyup", 'input.txtSetName', async function (e) {
         var textbox = $(this);
         var value = textbox.val();
 
@@ -404,10 +405,8 @@ $(document).ready(function () {
 
         if (code == 13) { //Enter keycode
             var td = textbox.parents('td');
-            saveValue(tr, 'name', value);
+            await saveValue(tr, 'name', value);
             td.html(value);
-        } else {
-            saveValue(tr, 'name', value);
         }
     });
 
@@ -418,11 +417,11 @@ $(document).ready(function () {
         }
     });
 
-    $('#btnHotkeySave').click(function() {
+    $('#btnHotkeySave').click(async function() {
         $('#hotkeyBlock').hide();
         var tr = $('#sets td.hotkey.active').parents('tr');
         var hotkey = $('#hotkeyBlock #txtHotkey').val();
-        saveValue(tr, 'hotkey', hotkey);
+        await saveValue(tr, 'hotkey', hotkey);
 
         refreshSetsList().then(
           () => sendMessage({ "action": 'rebind' }));

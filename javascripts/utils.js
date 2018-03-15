@@ -78,3 +78,8 @@ async function getSetsForCurrentUrl(providedUrl) {
 
     return sets;
 }
+
+async function getSet(key) {
+    const sets = await getSetsForCurrentUrl();
+    return sets.filter(set => set.key === key)[0]
+}
