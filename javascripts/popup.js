@@ -8,7 +8,7 @@ function getAllSets() {
         if (key == 'filter') {
             continue;
         }
-        
+
         var settings = JSON.parse(localStorage.getItem(key));
         settings.key = key;
         sets.push(settings);
@@ -32,9 +32,9 @@ function sortBy(property) {
 function refreshSetsList(url) {
     var table = $('#sets');
     var sets;
-    
+
     table.find('tbody tr').remove();
-    
+
     if (table.hasClass('allsets')) {
         sets = getAllSets();
         sets.sort(sortBy('url'));
@@ -54,13 +54,13 @@ function refreshSetsList(url) {
         $('#clearall').addClass('disabled');
         return;
     }
-    
+
     renderSets(sets);
-    
+
     if (table.hasClass('allsets')) {
         $('#clearall').addClass('disabled');
         renderAdditionalInfo(sets);
-    } 
+    }
 }
 
 function renderSets(sets) {
@@ -123,7 +123,7 @@ function sendMessage(obj, callback) {
 
 function setCurrentFilter() {
     var value = localStorage.getItem('filter');
-    
+
     if (!value) {
         localStorage.setItem('filter', FILTER_BY_FULL);
         value = FILTER_BY_FULL;
@@ -182,7 +182,7 @@ $(document).ready(function () {
         importBlock.show();
 		importBlock.find('#txtImportFormJson').focus();
     });
-	
+
     $("#btnImportSave").click(function () {
 		var json = $('#txtImportFormJson').val();
 
@@ -192,11 +192,11 @@ $(document).ready(function () {
 			if (!importedForm.url || !importedForm.content || !importedForm.name) {
 				throw new Error("Invalid JSON format");
 			}
-			
+
 			if (importedForm.url === '*'){
 				importedForm.name += '-global';
 			}
-			
+
 			var key = getRandomStorageId();
 			localStorage.setItem(key, JSON.stringify(importedForm));
 
@@ -204,7 +204,7 @@ $(document).ready(function () {
 		catch (err) {
 			alert('Got an error: ' + err.message);
 		}
-		
+
 		refreshSetsList(tab_url);
 		$('#importBlock').hide();
     });
@@ -215,7 +215,7 @@ $(document).ready(function () {
         }
 
         var sets = getSetsForCurrentUrl(tab_url);
-        
+
         for (var i = 0; i < sets.length; i++) {
             localStorage.removeItem(sets[i].key);
         }
@@ -272,13 +272,13 @@ $(document).ready(function () {
              window.close();
         });
     });
-    
+
     sets.on("click", 'td.submit', function (event) {
         var td = $(this);
         var tr = td.parents('tr');
 
         try {
-            
+
             if (td.hasClass('active')) {
                 saveValue(tr, 'autoSubmit', false);
                 td.removeClass('active');
@@ -296,17 +296,17 @@ $(document).ready(function () {
             } else {
                 td.removeClass('active');
             }
-            
+
         } finally {
             refreshSetsList(tab_url);
-        } 
-        
+        }
+
     });
 
     sets.on("click", 'td.remove', function (event) {
         var tr = $(this).parents('tr');
         var key = tr.data('key');
-        
+
         localStorage.removeItem(key);
 		refreshSetsList(tab_url);
     });
@@ -329,15 +329,15 @@ $(document).ready(function () {
 
         exportBlock.find('#txtFormJson').val(formJson).focus().select();
     });
-    
+
     sets.on("click", 'td.hotkey', function (event) {
         var hotkeyBlock = $('#hotkeyBlock');
-        
+
         if (hotkeyBlock.is(':visible')) {
             hotkeyBlock.hide();
             return;
         }
-        
+
         var td = $(this);
         var tr = td.parents('tr');
         var value = getValue(tr, 'hotkey');
@@ -346,31 +346,31 @@ $(document).ready(function () {
         hotkeyBlock.show();
         hotkeyBlock.find('#txtHotkey').val(value).focus().select();
     });
-    
+
     sets.on("click", 'td.setName', function (event) {
         var td = $(this);
         if (td.find('input').length) {
             return;
         }
-        
+
         var tr = td.parents('tr');
         var input = $('<input type="text" class="span1 txtSetName" />');
         input.val(getValue(tr, 'name'));
 
         td.empty().append(input).find('input').focus().select();
     });
-    
+
     sets.on("keyup", 'input.txtSetName', function (e) {
         var textbox = $(this);
         var value = textbox.val();
-        
+
         if (!value) {
             return;
         }
 
         var code = e.keyCode || e.which;
         var tr = textbox.parents('tr');
-        
+
         if (code == 13) { //Enter keycode
             var td = textbox.parents('td');
             saveValue(tr, 'name', value);
@@ -379,14 +379,14 @@ $(document).ready(function () {
             saveValue(tr, 'name', value);
         }
     });
-    
+
     $('#hotkeyBlock').on("keyup", '#txtHotkey', function (e) {
         var code = e.keyCode || e.which;
         if (code == 13) { //Enter keycode
             $('#btnHotkeySave').click();
         }
     });
-    
+
     $('#btnHotkeySave').click(function() {
         $('#hotkeyBlock').hide();
         var tr = $('#sets td.hotkey.active').parents('tr');
@@ -395,19 +395,19 @@ $(document).ready(function () {
         refreshSetsList(tab_url);
         sendMessage({ "action": 'rebind' }, function(response) { });
     });
-    
+
     $('#btnHotkeyCancel').click(function () {
         $('#hotkeyBlock').hide();
     });
-        
+
     $('#btnExportClose').click(function () {
         $('#exportBlock').hide();
     });
-    
+
     $('#btnImportClose').click(function () {
         $('#importBlock').hide();
     });
-    
+
     $('a.filter').click(function () {
         var link = $(this);
         var value = link.attr('id');
