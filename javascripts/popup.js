@@ -146,17 +146,26 @@ chrome.tabs.query({ 'active': true, 'currentWindow': true }, function (tab) {
     refreshSetsList(tab_url);
 });
 
+
+function initialiseCheckbox() {
+  window.STORE_TO_PROFILE = true;
+
+  $(document).ready(function() {
+    $('#store-to-profile').change(function(e) {
+      window.STORE_TO_PROFILE = e.target.checked;
+    }).prop("checked", true);
+  });
+}
+
 $(document).ready(function () {
+    initialiseCheckbox();
+
     setCurrentFilter();
-    
-	$('.donatelink').click(function () {
-		$('#donate').toggle();
-	});
-	
-    $("#check").click(function () {
-        
-    });
-    
+
+  	$('.donatelink').click(function () {
+  		$('#donate').toggle();
+  	});
+
     $("#viewSets").click(function () {
         $('#sets').addClass('allsets');
         refreshSetsList();

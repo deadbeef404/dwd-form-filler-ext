@@ -29,6 +29,29 @@
         .dropdown-menu { left: 38%; text-align: left }
         #txtFormJson { height: 90px; width: 500px; }
     </style>
+    <style>
+      label.fancyToggle {
+        display: block;
+        padding: 5px 10px;
+        margin: 5px 0;
+        font: 14px/20px Arial, sans-serif;
+        background-color: #ccc;
+        border-radius: 7px;
+      }
+      label.fancyToggle:hover {
+        background-color: gold;
+        cursor: pointer;
+      }
+
+      .fancyToggle input[type="checkbox"] {
+        position: relative;
+        top: 1px;
+      }
+
+      .fancyToggle .isSelected {
+        background-color: lightgreen;
+      }
+    </style>
 
 </head>
     <body>
@@ -45,6 +68,11 @@
             <button class="btn dropdown-toggle" data-toggle="dropdown" tabindex="-1">
                 <i class="icon-cog"></i> <span class="caret"></span>
             </button>
+            <button type="button" id="import" title="Import JSON of a saved form" class="btn"><i class="icon-plus"></i></button>
+            <label class="fancyToggle">
+              <input id="store-to-profile" type="checkbox" />
+              <span>Saving to Chrome profile</span>
+            </label>
             <ul class="dropdown-menu">
                 <li><a href="#" id="viewSets">View all saved sets</a></li>
                 <li class="divider"></li>
