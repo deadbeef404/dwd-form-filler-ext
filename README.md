@@ -1,7 +1,6 @@
-web-developer-form-filler-ext
+dwd-form-filler-ext
 =============================
 
-This extension is used by developers to make it easy to fill forms
+Useful for developers to fill forms.
 
-It's available in Google Web Store 
-https://chrome.google.com/webstore/detail/web-developer-form-filler/gbagmkohmhcjgbepncmehejaljoclpil
+It will soon be available in the Google Web Store.
