@@ -15,7 +15,7 @@
 		"16" :  "images/16.png",
 	  "48" :  "images/48.png",
 	  "128" : "images/128.png"},
-	"description": "Useful for developers to fill forms.",
+	"description": "Save time. Fill forms quickly.",
 	"browser_action": {
 		"default_icon": "images/48.png",
 		"default_title": "DWD Form Filler",

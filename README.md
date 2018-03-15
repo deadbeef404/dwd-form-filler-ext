@@ -1,7 +1,7 @@
 dwd-form-filler-ext
 =============================
 
-Useful for developers to fill forms.
+A great time saver for developers and testers who fill forms.
 
 Now available in the Chrome Web Store!
 https://chrome.google.com/webstore/detail/dwd-form-filler/mahiefbimdnjigbknfjknhgfdhnfehoh
