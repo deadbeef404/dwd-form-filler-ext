@@ -207,7 +207,6 @@ async function storeOneSet(key, setInfo) {
     } else {
         localStorage.setItem(key, dataString);
     }
-
 }
 
 /**
