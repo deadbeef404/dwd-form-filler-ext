@@ -26,7 +26,8 @@
 	},
 	"permissions": [
 		"tabs",
-		"http://*/", "https://*/"
+		"http://*/", "https://*/",
+		"storage"
 	],
 	"manifest_version": 2
 }
