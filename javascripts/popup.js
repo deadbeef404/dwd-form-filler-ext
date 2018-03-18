@@ -424,7 +424,7 @@ $(document).ready(function () {
         await saveValue(tr, 'hotkey', hotkey);
 
         refreshSetsList().then(
-          () => sendMessage({ "action": 'rebind' }));
+            () => sendMessage({ "action": 'rebind' }));
     });
 
     $('#btnHotkeyCancel').click(function () {
@@ -450,8 +450,7 @@ $(document).ready(function () {
         refreshSetsList();
     });
 
-    sets
-      .on("mousedown", 'tbody td', function(event) {
+    sets.on("mousedown", 'tbody td', function(event) {
         $(this).addClass('clicked');
     }).on("mouseup", 'tbody td', function(event) {
         $(this).removeClass('clicked');
