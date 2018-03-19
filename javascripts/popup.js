@@ -225,6 +225,29 @@ async function removeSetOfKeys(keys) {
     }
 }
 
+/**
+ * Called when the user has typed a new name for a data set.
+ */
+async function renameSet(element) {
+    var textbox = $(element);
+    var value = textbox.val();
+
+    if (!value) { return; }
+
+    var tr = textbox.parents('tr');
+    await saveValue(tr, 'name', value);
+    textbox.parents('td').html(value);
+}
+
+
+function onRenameKeyUp(e) {
+    var code = e.keyCode || e.which;
+
+    if (code == 13) { //Enter keycode
+        renameSet($(this));
+    }
+}
+
 
 $(document).ready(function () {
     refreshSetsList();
@@ -391,23 +414,8 @@ $(document).ready(function () {
         td.empty().append(input).find('input').focus().select();
     });
 
-    sets.on("keyup", 'input.txtSetName', async function (e) {
-        var textbox = $(this);
-        var value = textbox.val();
-
-        if (!value) {
-            return;
-        }
-
-        var code = e.keyCode || e.which;
-        var tr = textbox.parents('tr');
-
-        if (code == 13) { //Enter keycode
-            var td = textbox.parents('td');
-            await saveValue(tr, 'name', value);
-            td.html(value);
-        }
-    });
+    sets.on("blur", 'input.txtSetName', function(){renameSet(this)});
+    sets.on("keyup", 'input.txtSetName', onRenameKeyUp);
 
     $('#hotkeyBlock').on("keyup", '#txtHotkey', function (e) {
         var code = e.keyCode || e.which;
