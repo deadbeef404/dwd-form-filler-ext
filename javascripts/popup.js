@@ -297,11 +297,10 @@ $(document).ready(function () {
         $('div.block').hide();
     });
 
-    sets.on("click", 'td.restore:not(.disabled)', function (event) {
+    sets.on("click", 'td.restore:not(.disabled)', async function (event) {
         var key = $(this).parents('tr').data('key');
-        var setSettings = JSON.parse(localStorage.getItem(key));
-
-        const message = { action: 'fill', setSettings: setSettings };
+        const setSettings = await getSet(key);
+        const message = { action: 'fill', setSettings };
         sendMessage(message).then(window.close);
     });
 
